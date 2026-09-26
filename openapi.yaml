@@ -1,53 +1,82 @@
 openapi: 3.0.3
+
 info:
   title: SecureCheck API
+  description: API for password policy validation and privacy-preserving credential exposure checks.
   version: 1.0.0
+
 paths:
+
   /api/v1/health:
     get:
       summary: Health check
+      description: Checks whether the application can connect to the MySQL database.
       responses:
-        '200': {description: Application and database healthy}
+        '200':
+          description: Application and database are healthy.
+        '503':
+          description: Database or application dependency is unavailable.
+
   /api/v1/password-policy:
     post:
       summary: Validate password policy locally
-      security: [{sessionCookie: []}]
+      description: Checks password length, character requirements, and common-password rules.
+      security:
+        - sessionCookie: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [password]
+              required:
+                - password
               properties:
-                password: {type: string}
+                password:
+                  type: string
+                  description: Password to validate locally.
       responses:
-        '200': {description: Policy result}
-        '400': {description: Invalid input}
+        '200':
+          description: Password policy validation result.
+        '400':
+          description: Invalid request data.
+        '403':
+          description: Authentication or CSRF validation failed.
+
   /api/v1/credential-exposure:
     post:
       summary: Privacy-preserving breached-password check
-      description: Only the first five hexadecimal characters of a local SHA-1 hash are sent to the external k-anonymity service.
-      security: [{sessionCookie: []}]
+      description: >
+        Checks whether a password appears in known breach data.
+        The complete password is hashed locally and only the first five
+        hexadecimal characters of the SHA-1 hash are sent to the
+        Pwned Passwords k-anonymity service.
+      security:
+        - sessionCookie: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [password]
+              required:
+                - password
               properties:
-                password: {type: string}
+                password:
+                  type: string
+                  description: Password checked locally before the hash prefix lookup.
       responses:
-        '200': {description: Exposure result}
-        '503': {description: Exposure service unavailable}
-  /api/v1/telemetry:
-    get:
-      summary: Last 24-hour request telemetry
-      security: [{sessionCookie: []}]
-      responses:
-        '200': {description: Telemetry summary}
+        '200':
+          description: Credential exposure check completed.
+        '400':
+          description: Invalid request data.
+        '403':
+          description: Authentication or CSRF validation failed.
+        '503':
+          description: Exposure service unavailable.
+
 components:
+
   securitySchemes:
     sessionCookie:
       type: apiKey
