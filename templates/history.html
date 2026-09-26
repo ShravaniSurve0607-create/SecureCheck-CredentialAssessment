@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}
+History
+{% endblock %}
+
+
+{% block content %}
+
+<section class="card">
+
+    <h1>
+        Assessment History
+    </h1>
+
+
+    {% if results %}
+
+    <table>
+
+        <tr>
+
+            <th>
+                Score
+            </th>
+
+            <th>
+                Readiness
+            </th>
+
+            <th>
+                Date
+            </th>
+
+        </tr>
+
+
+        {% for r in results %}
+
+        <tr>
+
+            <td>
+                {{ r.score }}/100
+            </td>
+
+            <td>
+                {{ r.readiness_level }}
+            </td>
+
+            <td>
+                {{ r.created_at }}
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+
+    {% else %}
+
+        <p>
+            No results yet.
+        </p>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

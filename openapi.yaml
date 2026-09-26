@@ -1,0 +1,55 @@
+openapi: 3.0.3
+info:
+  title: SecureCheck API
+  version: 1.0.0
+paths:
+  /api/v1/health:
+    get:
+      summary: Health check
+      responses:
+        '200': {description: Application and database healthy}
+  /api/v1/password-policy:
+    post:
+      summary: Validate password policy locally
+      security: [{sessionCookie: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: {type: string}
+      responses:
+        '200': {description: Policy result}
+        '400': {description: Invalid input}
+  /api/v1/credential-exposure:
+    post:
+      summary: Privacy-preserving breached-password check
+      description: Only the first five hexadecimal characters of a local SHA-1 hash are sent to the external k-anonymity service.
+      security: [{sessionCookie: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: {type: string}
+      responses:
+        '200': {description: Exposure result}
+        '503': {description: Exposure service unavailable}
+  /api/v1/telemetry:
+    get:
+      summary: Last 24-hour request telemetry
+      security: [{sessionCookie: []}]
+      responses:
+        '200': {description: Telemetry summary}
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: session

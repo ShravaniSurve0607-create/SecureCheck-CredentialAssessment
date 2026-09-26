@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}
+Profile
+{% endblock %}
+
+
+{% block content %}
+
+<section class="auth card">
+
+    <h1>
+        My Profile
+    </h1>
+
+
+    <form method="POST">
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+
+
+        <label>
+
+            Name
+
+            <input
+                type="text"
+                name="name"
+                value="{{ session.get('user_name') }}"
+                required>
+
+        </label>
+
+
+        <label>
+
+            Email
+
+            <input
+                type="email"
+                value="{{ session.get('user_email') }}"
+                disabled>
+
+        </label>
+
+
+        <button
+            class="btn"
+            type="submit">
+
+            Update Name
+
+        </button>
+
+
+    </form>
+
+</section>
+
+{% endblock %}

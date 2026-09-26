@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}
+Login
+{% endblock %}
+
+
+{% block content %}
+
+<section class="auth card">
+
+    <h1>
+        Welcome Back
+    </h1>
+
+
+    <form method="POST">
+                <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+
+
+        <label>
+
+            Email
+
+            <input
+                type="email"
+                name="email"
+                required>
+
+        </label>
+
+
+        <label>
+
+            Password
+
+            <input
+                type="password"
+                name="password"
+                required>
+
+        </label>
+
+
+        <button
+            class="btn"
+            type="submit">
+
+            Login
+
+        </button>
+
+
+    </form>
+
+
+    <p>
+
+        New user?
+
+        <a href="/register">
+            Create Account
+        </a>
+
+    </p>
+
+</section>
+
+{% endblock %}

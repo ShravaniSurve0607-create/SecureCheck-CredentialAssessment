@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}
+Exposure Check
+{% endblock %}
+
+
+{% block content %}
+
+<section class="card">
+
+    <span class="badge">
+        Safe Check
+    </span>
+
+
+    <h1>
+        Credential Exposure Check
+    </h1>
+
+
+    <p>
+        Enter only an email.
+        <strong>
+            Never enter a password.
+        </strong>
+    </p>
+
+
+    <form method="POST">
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+
+        <label>
+
+            Email
+
+            <input
+                type="email"
+                name="email"
+                placeholder="name@example.com"
+                required>
+
+        </label>
+
+
+        <br>
+
+
+        <button
+            class="btn"
+            type="submit">
+
+            Check Exposure
+
+        </button>
+
+    </form>
+
+
+    {% if result %}
+
+    <div class="resultbox">
+
+        <h2>
+            {{ result.status }}
+        </h2>
+
+
+        <p>
+            {{ result.email }}
+        </p>
+
+
+        {% if result.status == "Exposed" %}
+
+            <p class="danger-text">
+
+                Matched the local demo exposure dataset. Use this email checker only as a demonstration; it is separate from the privacy-preserving password hash lookup.
+
+            </p>
+
+        {% else %}
+
+            <p class="success-text">
+
+                No local demo match.
+                This is not proof of no real-world breach.
+
+            </p>
+
+        {% endif %}
+
+    </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

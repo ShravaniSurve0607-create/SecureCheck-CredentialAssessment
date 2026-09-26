@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}SecureCheck{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header>
+<a href="/" class="brand">SecureCheck</a>
+<nav>
+<a href="/">Home</a>
+{% if session.get("user_id") %}
+<a href="/dashboard">Dashboard</a>
+<a href="/assessment">Assessment</a>
+<a href="/password-policy">Password Policy</a>
+<a href="/credential-exposure">Breached Hash Check</a>
+<a href="/exposure">Email Exposure</a>
+<a href="/history">History</a>
+<a href="/profile">Profile</a>
+<a href="/recommendations">Recommendations</a>
+{% if session.get("role") == "admin" %}<a href="/admin">Admin</a>{% endif %}
+<a href="/logout" class="btn">Logout</a>
+{% else %}
+<a href="/login">Login</a><a href="/register" class="btn">Register</a>
+{% endif %}
+</nav>
+</header>
+{% with messages=get_flashed_messages(with_categories=true) %}
+{% for category,message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+{% endwith %}
+<main>{% block content %}{% endblock %}</main>
+<footer>© 2026 SecureCheck · Privacy-preserving credential security platform</footer>
+</body>
+</html>

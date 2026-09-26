@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+
+{% block content %}
+
+
+<h1>
+    Welcome, {{ session.get("user_name") }} 👋
+</h1>
+
+
+<p>
+    Your SecureCheck dashboard.
+</p>
+
+
+<section class="grid three">
+
+
+    <a href="/assessment"
+       class="card linkcard">
+
+        <h3>
+            🔐 Assessment
+        </h3>
+
+        <p>
+            Check passwordless readiness.
+        </p>
+
+    </a>
+
+
+    <a href="/exposure"
+       class="card linkcard">
+
+        <h3>
+            🛡️ Exposure Check
+        </h3>
+
+        <p>
+            Check an email safely.
+        </p>
+
+    </a>
+
+
+    <a href="/history"
+       class="card linkcard">
+
+        <h3>
+            📊 History
+        </h3>
+
+        <p>
+            View previous results.
+        </p>
+
+    </a>
+
+
+</section>
+
+
+<section class="card">
+
+    <h2>
+        Recent Assessments
+    </h2>
+
+
+    {% if results %}
+
+    <table>
+
+        <tr>
+
+            <th>
+                Score
+            </th>
+
+            <th>
+                Level
+            </th>
+
+            <th>
+                Date
+            </th>
+
+        </tr>
+
+
+        {% for r in results %}
+
+        <tr>
+
+            <td>
+                {{ r.score }}/100
+            </td>
+
+            <td>
+                {{ r.readiness_level }}
+            </td>
+
+            <td>
+                {{ r.created_at }}
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+
+    {% else %}
+
+        <p>
+            No assessment yet.
+        </p>
+
+    {% endif %}
+
+</section>
+
+
+<section class="card">
+
+    <h2>
+        Recent Exposure Checks
+    </h2>
+
+
+    {% if exposures %}
+
+    <table>
+
+        <tr>
+
+            <th>
+                Email
+            </th>
+
+            <th>
+                Status
+            </th>
+
+            <th>
+                Date
+            </th>
+
+        </tr>
+
+
+        {% for e in exposures %}
+
+        <tr>
+
+            <td>
+                {{ e.email_checked }}
+            </td>
+
+            <td>
+                {{ e.status }}
+            </td>
+
+            <td>
+                {{ e.checked_at }}
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+
+    {% else %}
+
+        <p>
+            No exposure check yet.
+        </p>
+
+    {% endif %}
+
+</section>
+
+
+{% endblock %}

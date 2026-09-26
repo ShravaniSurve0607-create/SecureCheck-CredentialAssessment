@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}
+Result
+{% endblock %}
+
+
+{% block content %}
+
+<section class="card result">
+
+    <span class="badge">
+        Assessment Complete
+    </span>
+
+
+    <h1>
+        Your Score
+    </h1>
+
+
+    <div class="score">
+
+        {{ score }}
+
+        <small>
+            /100
+        </small>
+
+    </div>
+
+
+    <h2>
+        {{ level }}
+    </h2>
+
+
+    {% if score >= 80 %}
+
+        <p>
+            Continue reviewing authentication
+            controls and security practices.
+        </p>
+
+
+    {% elif score >= 50 %}
+
+        <p>
+            Consider improving MFA,
+            employee awareness and
+            authentication policies.
+        </p>
+
+
+    {% else %}
+
+        <p>
+            Focus on MFA, stronger authentication
+            policies and security awareness.
+        </p>
+
+    {% endif %}
+
+
+    <br>
+
+
+    <a href="/dashboard"
+       class="btn">
+
+        Dashboard
+
+    </a>
+
+
+    <a href="/assessment"
+       class="btn">
+
+        Take Again
+
+    </a>
+
+</section>
+
+{% endblock %}

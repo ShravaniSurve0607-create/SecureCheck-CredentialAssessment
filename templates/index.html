@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}
+SecureCheck | Home
+{% endblock %}
+
+
+{% block content %}
+
+
+<section class="hero">
+
+    <div>
+
+        <span class="badge">
+            Cybersecurity Assessment
+        </span>
+
+
+        <h1>
+            Credential Exposure &
+            Passwordless Readiness Assessment
+        </h1>
+
+
+        <p>
+            Assess authentication readiness,
+            review exposure-check results and
+            receive security recommendations.
+        </p>
+
+
+        {% if session.get("user_id") %}
+
+            <a href="/dashboard"
+               class="btn big">
+                Open Dashboard
+            </a>
+
+        {% else %}
+
+            <a href="/register"
+               class="btn big">
+                Get Started
+            </a>
+
+        {% endif %}
+
+    </div>
+
+
+    <div class="hero-card">
+
+        <div class="shield">
+            ✓
+        </div>
+
+        <h2>
+            SecureCheck
+        </h2>
+
+        <p>
+            Never enter a real password
+            in the exposure checker.
+        </p>
+
+    </div>
+
+</section>
+
+
+<h2>
+    Features
+</h2>
+
+
+<section class="grid three">
+
+
+    <div class="card">
+
+        <h3>
+            🔐 Passwordless Readiness
+        </h3>
+
+        <p>
+            Five questions and a
+            0–100 readiness score.
+        </p>
+
+    </div>
+
+
+    <div class="card">
+
+        <h3>
+            🛡️ Exposure Check
+        </h3>
+
+        <p>
+            Email-only safe demo
+            exposure checking.
+        </p>
+
+    </div>
+
+
+    <div class="card">
+
+        <h3>
+            📊 History
+        </h3>
+
+        <p>
+            Review previous assessments
+            and recommendations.
+        </p>
+
+    </div>
+
+
+</section>
+
+
+{% endblock %}
