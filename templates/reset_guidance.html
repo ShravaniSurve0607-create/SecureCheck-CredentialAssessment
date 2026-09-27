@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Reset Guidance{% endblock %}
+
+{% block content %}
+
+<section class="card">
+
+    <span class="badge">Account recovery</span>
+
+    <h1>Password Reset Guidance</h1>
+
+    <p>
+        Follow these steps when a password may have been exposed,
+        forgotten, or compromised.
+    </p>
+
+    <ol>
+        {% for step in steps %}
+        <li>{{ step }}</li>
+        {% endfor %}
+    </ol>
+
+</section>
+
+<section class="card">
+
+    <h2>After the reset</h2>
+
+    <p>
+        Check the new password with SecureCheck's password policy
+        and credential exposure features before using it for
+        important accounts.
+    </p>
+
+    <a class="btn" href="/password-policy">
+        Check Password Policy
+    </a>
+
+    <a class="btn" href="/credential-exposure">
+        Check Credential Exposure
+    </a>
+
+</section>
+
+{% endblock %}

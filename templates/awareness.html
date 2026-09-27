@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Security Awareness{% endblock %}
+
+{% block content %}
+
+<section class="card">
+    <span class="badge">Security awareness</span>
+
+    <h1>Security Awareness Lessons</h1>
+
+    <p>
+        Short lessons to help users recognize common credential and
+        account-security risks.
+    </p>
+</section>
+
+<div class="grid two">
+
+{% for lesson in lessons %}
+
+<section class="card">
+    <h2>{{ lesson.title }}</h2>
+    <p>{{ lesson.description }}</p>
+</section>
+
+{% endfor %}
+
+</div>
+
+<section class="card">
+    <h2>Key principle</h2>
+    <p>
+        Secure behavior combines strong credentials, phishing-resistant
+        authentication, safe recovery methods and regular security awareness.
+    </p>
+</section>
+
+{% endblock %}

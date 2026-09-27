@@ -46,7 +46,7 @@ def test_health(client):
 
 def test_login_rejects_bad_credentials(client, monkeypatch):
     # Mock the database lookup so this test does not
-    # depend on the local MySQL password.
+    # depend on local MySQL credentials.
     monkeypatch.setattr(
         "app.fetch_one",
         lambda *args, **kwargs: None
@@ -81,8 +81,10 @@ def test_exposure_hash_uses_k_anonymity(monkeypatch):
         seen["url"] = url
         return Response()
 
+    # The HTTP request is made by the breach_check module,
+    # so mock requests.get there.
     monkeypatch.setattr(
-        "app.requests.get",
+        "security.breach_check.requests.get",
         fake_get
     )
 
@@ -90,13 +92,15 @@ def test_exposure_hash_uses_k_anonymity(monkeypatch):
         "correct horse battery staple"
     )
 
+    assert "url" in seen
+
     prefix = seen["url"].rstrip("/").split("/")[-1]
 
     # Only a 5-character hash prefix should be sent
     assert len(prefix) == 5
     assert prefix.isalnum()
 
-    # Verify the correct Pwned Passwords API endpoint
+    # Verify the Pwned Passwords k-anonymity endpoint
     assert seen["url"].startswith(
         "https://api.pwnedpasswords.com/range/"
     )

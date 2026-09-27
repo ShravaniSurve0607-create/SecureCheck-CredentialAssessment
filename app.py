@@ -6,7 +6,6 @@ import secrets
 import time
 from functools import wraps
 
-import requests
 from flask import (
     Flask,
     jsonify,
@@ -16,7 +15,7 @@ from flask import (
     url_for,
     session,
     flash,
-    abort
+    abort,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -33,7 +32,7 @@ app = Flask(__name__)
 
 app.secret_key = os.getenv(
     "SECRET_KEY",
-    "dev-only-change-me"
+    "dev-only-change-me",
 )
 
 app.config.update(
@@ -41,7 +40,7 @@ app.config.update(
     SESSION_COOKIE_SAMESITE="Lax",
     SESSION_COOKIE_SECURE=os.getenv(
         "SESSION_COOKIE_SECURE",
-        "0"
+        "0",
     ) == "1",
     MAX_CONTENT_LENGTH=16 * 1024,
 )
@@ -77,6 +76,7 @@ COMMON_PASSWORDS = {
     "changeme",
 }
 
+# Corrected email validation pattern
 EMAIL_RE = re.compile(
     r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 )
@@ -91,7 +91,6 @@ def get_csrf_token():
     Create a CSRF token for the current session if one
     does not already exist.
     """
-
     if "csrf_token" not in session:
         session["csrf_token"] = secrets.token_hex(32)
 
@@ -102,7 +101,6 @@ def valid_csrf(token):
     """
     Validate the supplied CSRF token.
     """
-
     expected = session.get("csrf_token")
 
     if not token or not expected:
@@ -110,7 +108,7 @@ def valid_csrf(token):
 
     return hmac.compare_digest(
         str(token),
-        str(expected)
+        str(expected),
     )
 
 
@@ -119,7 +117,6 @@ def inject_csrf_token():
     """
     Make csrf_token available to every template.
     """
-
     return {
         "csrf_token": get_csrf_token()
     }
@@ -132,13 +129,11 @@ def inject_csrf_token():
 def login_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
-
         if not session.get("user_id"):
             flash(
                 "Please log in to continue.",
-                "warning"
+                "warning",
             )
-
             return redirect(
                 url_for("login")
             )
@@ -155,9 +150,8 @@ def admin_required(view):
         if not session.get("user_id"):
             flash(
                 "Please log in first.",
-                "warning"
+                "warning",
             )
-
             return redirect(
                 url_for("login")
             )
@@ -182,12 +176,11 @@ def password_policy(password):
     The actual policy is implemented in
     security/password_policy.py.
     """
-
     result = check_password_policy(password)
 
     return result.get(
         "errors",
-        []
+        [],
     )
 
 
@@ -198,17 +191,16 @@ def check_pwned_password(password):
     Only the first five characters of the SHA-1 hash are sent
     to the external breach service.
     """
-
     result = check_password_breach(password)
 
     return {
         "breached": result.get(
             "breached",
-            False
+            False,
         ),
         "match_count": result.get(
             "count",
-            0
+            0,
         ),
         "error": result.get(
             "error"
@@ -276,10 +268,9 @@ def before_request():
         if request.endpoint not in {"static"}:
 
             if not valid_csrf(token):
-
                 abort(
                     400,
-                    description="Invalid CSRF token."
+                    description="Invalid CSRF token.",
                 )
 
 
@@ -293,13 +284,13 @@ def after_request(response):
     started = getattr(
         request,
         "_securecheck_start",
-        None
+        None,
     )
 
     duration_ms = (
         round(
             (time.perf_counter() - started) * 1000,
-            2
+            2,
         )
         if started
         else None
@@ -327,8 +318,8 @@ def after_request(response):
                 request.path,
                 response.status_code,
                 duration_ms,
-                None
-            )
+                None,
+            ),
         )
 
         conn.commit()
@@ -337,6 +328,7 @@ def after_request(response):
         conn.close()
 
     except Exception:
+        # Telemetry failure must not break the application.
         pass
 
     return response
@@ -360,7 +352,7 @@ def index():
 
 @app.route(
     "/register",
-    methods=["GET", "POST"]
+    methods=["GET", "POST"],
 )
 def register():
 
@@ -372,23 +364,24 @@ def register():
 
     name = request.form.get(
         "name",
-        ""
+        "",
     ).strip()
 
     email = request.form.get(
         "email",
-        ""
+        "",
     ).strip().lower()
 
     password = request.form.get(
         "password",
-        ""
+        "",
     )
 
     if not name:
+
         flash(
             "Name is required.",
-            "danger"
+            "danger",
         )
 
         return render_template(
@@ -399,7 +392,7 @@ def register():
 
         flash(
             "Please enter a valid email address.",
-            "danger"
+            "danger",
         )
 
         return render_template(
@@ -416,7 +409,7 @@ def register():
 
             flash(
                 error,
-                "danger"
+                "danger",
             )
 
         return render_template(
@@ -434,7 +427,7 @@ def register():
             FROM users
             WHERE email = %s
             """,
-            (email,)
+            (email,),
         )
 
         existing = cur.fetchone()
@@ -443,7 +436,7 @@ def register():
 
             flash(
                 "An account with this email already exists.",
-                "danger"
+                "danger",
             )
 
             return render_template(
@@ -468,8 +461,8 @@ def register():
             (
                 name,
                 email,
-                password_hash
-            )
+                password_hash,
+            ),
         )
 
         user_id = cur.lastrowid
@@ -488,7 +481,7 @@ def register():
                 ),
                 metadata={
                     "action": "REGISTER"
-                }
+                },
             )
 
         except Exception:
@@ -496,7 +489,7 @@ def register():
 
         flash(
             "Registration successful. Please log in.",
-            "success"
+            "success",
         )
 
         return redirect(
@@ -509,7 +502,7 @@ def register():
 
         flash(
             "Registration failed. Please try again.",
-            "danger"
+            "danger",
         )
 
         return render_template(
@@ -528,7 +521,7 @@ def register():
 
 @app.route(
     "/login",
-    methods=["GET", "POST"]
+    methods=["GET", "POST"],
 )
 def login():
 
@@ -540,12 +533,12 @@ def login():
 
     email = request.form.get(
         "email",
-        ""
+        "",
     ).strip().lower()
 
     password = request.form.get(
         "password",
-        ""
+        "",
     )
 
     user = fetch_one(
@@ -559,17 +552,45 @@ def login():
         FROM users
         WHERE email = %s
         """,
-        (email,)
+        (email,),
     )
 
     if not user or not check_password_hash(
         user["password"],
-        password
+        password,
     ):
+
+        # Record failed authentication without storing the password.
+        try:
+
+            conn = get_database_connection()
+
+            try:
+
+                log_event(
+                    conn,
+                    target_type="AUTHENTICATION",
+                    target_id=None,
+                    ip_address=request.remote_addr,
+                    user_agent=request.headers.get(
+                        "User-Agent"
+                    ),
+                    metadata={
+                        "action": "LOGIN",
+                        "status": "failure",
+                    },
+                )
+
+            finally:
+
+                conn.close()
+
+        except Exception:
+            pass
 
         flash(
             "Invalid email or password",
-            "danger"
+            "danger",
         )
 
         return render_template(
@@ -602,8 +623,8 @@ def login():
                 ),
                 metadata={
                     "action": "LOGIN",
-                    "status": "success"
-                }
+                    "status": "success",
+                },
             )
 
         finally:
@@ -647,7 +668,7 @@ def logout():
                     ),
                     metadata={
                         "action": "LOGOUT"
-                    }
+                    },
                 )
 
             finally:
@@ -661,7 +682,7 @@ def logout():
 
     flash(
         "You have been logged out.",
-        "success"
+        "success",
     )
 
     return redirect(
@@ -690,7 +711,7 @@ def dashboard():
         ORDER BY created_at DESC
         LIMIT 10
         """,
-        (user_id,)
+        (user_id,),
     )
 
     exposures = fetch_all(
@@ -704,13 +725,13 @@ def dashboard():
         ORDER BY checked_at DESC
         LIMIT 10
         """,
-        (user_id,)
+        (user_id,),
     )
 
     return render_template(
         "dashboard.html",
         results=results,
-        exposures=exposures
+        exposures=exposures,
     )
 
 
@@ -720,7 +741,7 @@ def dashboard():
 
 @app.route(
     "/assessment",
-    methods=["GET", "POST"]
+    methods=["GET", "POST"],
 )
 @login_required
 def assessment():
@@ -772,8 +793,8 @@ def assessment():
             (
                 session["user_id"],
                 score,
-                level
-            )
+                level,
+            ),
         )
 
         conn.commit()
@@ -789,9 +810,10 @@ def assessment():
                     "User-Agent"
                 ),
                 metadata={
+                    "action": "ASSESSMENT",
                     "score": score,
-                    "readiness_level": level
-                }
+                    "readiness_level": level,
+                },
             )
 
         except Exception:
@@ -805,7 +827,7 @@ def assessment():
     return render_template(
         "result.html",
         score=score,
-        level=level
+        level=level,
     )
 
 
@@ -827,12 +849,12 @@ def history():
         WHERE user_id = %s
         ORDER BY created_at DESC
         """,
-        (session["user_id"],)
+        (session["user_id"],),
     )
 
     return render_template(
         "history.html",
-        results=results
+        results=results,
     )
 
 
@@ -842,7 +864,7 @@ def history():
 
 @app.route(
     "/profile",
-    methods=["GET", "POST"]
+    methods=["GET", "POST"],
 )
 @login_required
 def profile():
@@ -855,14 +877,14 @@ def profile():
 
     name = request.form.get(
         "name",
-        ""
+        "",
     ).strip()
 
     if not name:
 
         flash(
             "Name cannot be empty.",
-            "danger"
+            "danger",
         )
 
         return render_template(
@@ -882,8 +904,8 @@ def profile():
             """,
             (
                 name,
-                session["user_id"]
-            )
+                session["user_id"],
+            ),
         )
 
         conn.commit()
@@ -892,7 +914,7 @@ def profile():
 
         flash(
             "Profile updated successfully.",
-            "success"
+            "success",
         )
 
     finally:
@@ -911,7 +933,7 @@ def profile():
 
 @app.route(
     "/exposure",
-    methods=["GET", "POST"]
+    methods=["GET", "POST"],
 )
 @login_required
 def exposure():
@@ -922,25 +944,22 @@ def exposure():
 
         email = request.form.get(
             "email",
-            ""
+            "",
         ).strip().lower()
 
         if not EMAIL_RE.match(email):
 
             flash(
                 "Please enter a valid email address.",
-                "danger"
+                "danger",
             )
 
             return render_template(
                 "exposure.html",
-                result=None
+                result=None,
             )
 
-        # This is a local/demo exposure check.
-        # In a production system this should connect to an
-        # approved breach intelligence provider.
-
+        # Local/demo exposure check.
         status = "Not Exposed"
 
         conn = get_database_connection()
@@ -961,15 +980,15 @@ def exposure():
                 (
                     session["user_id"],
                     email,
-                    status
-                )
+                    status,
+                ),
             )
 
             conn.commit()
 
             result = {
                 "email": email,
-                "status": status
+                "status": status,
             }
 
             try:
@@ -983,9 +1002,9 @@ def exposure():
                         "User-Agent"
                     ),
                     metadata={
-                        "email_checked": email,
-                        "status": status
-                    }
+                        "action": "EXPOSURE_CHECK",
+                        "status": status,
+                    },
                 )
 
             except Exception:
@@ -998,7 +1017,7 @@ def exposure():
 
     return render_template(
         "exposure.html",
-        result=result
+        result=result,
     )
 
 
@@ -1008,7 +1027,7 @@ def exposure():
 
 @app.route(
     "/credential-exposure",
-    methods=["GET", "POST"]
+    methods=["GET", "POST"],
 )
 @login_required
 def credential_exposure():
@@ -1019,22 +1038,24 @@ def credential_exposure():
 
         password = request.form.get(
             "password",
-            ""
+            "",
         )
 
         if not password:
 
             flash(
                 "Password is required.",
-                "danger"
+                "danger",
             )
 
             return render_template(
                 "credential_exposure.html",
-                result=None
+                result=None,
             )
 
-        # Calculate SHA-1 locally.
+        # SHA-1 is calculated locally.
+        # Only its 5-character prefix is used by the
+        # breach-check service.
         sha1_hash = hashlib.sha1(
             password.encode("utf-8")
         ).hexdigest().upper()
@@ -1047,12 +1068,12 @@ def credential_exposure():
 
         exposed = breach_result.get(
             "breached",
-            False
+            False,
         )
 
         match_count = breach_result.get(
             "count",
-            0
+            0,
         )
 
         result = {
@@ -1061,7 +1082,7 @@ def credential_exposure():
             "prefix": prefix,
             "error": breach_result.get(
                 "error"
-            )
+            ),
         }
 
         conn = get_database_connection()
@@ -1084,8 +1105,8 @@ def credential_exposure():
                     session["user_id"],
                     prefix,
                     exposed,
-                    match_count
-                )
+                    match_count,
+                ),
             )
 
             conn.commit()
@@ -1101,9 +1122,10 @@ def credential_exposure():
                         "User-Agent"
                     ),
                     metadata={
+                        "action": "CREDENTIAL_EXPOSURE",
                         "exposed": exposed,
-                        "match_count": match_count
-                    }
+                        "match_count": match_count,
+                    },
                 )
 
             except Exception:
@@ -1116,7 +1138,7 @@ def credential_exposure():
 
     return render_template(
         "credential_exposure.html",
-        result=result
+        result=result,
     )
 
 
@@ -1126,7 +1148,7 @@ def credential_exposure():
 
 @app.route(
     "/password-policy",
-    methods=["GET", "POST"]
+    methods=["GET", "POST"],
 )
 @login_required
 def password_policy_page():
@@ -1137,22 +1159,21 @@ def password_policy_page():
 
         password = request.form.get(
             "password",
-            ""
+            "",
         )
 
         result = check_password_policy(
             password
         )
 
-        # Template expects "violations".
         result["violations"] = result.get(
             "errors",
-            []
+            [],
         )
 
     return render_template(
         "password_policy.html",
-        result=result
+        result=result,
     )
 
 
@@ -1166,6 +1187,210 @@ def recommendations():
 
     return render_template(
         "recommendations.html"
+    )
+
+
+# =========================================================
+# Security Awareness Lessons
+# =========================================================
+
+@app.route("/awareness")
+@login_required
+def awareness():
+
+    lessons = [
+        {
+            "title": "Password hygiene",
+            "description": (
+                "Use a unique password for every important account. "
+                "Prefer a password manager instead of reusing passwords."
+            ),
+        },
+        {
+            "title": "Phishing awareness",
+            "description": (
+                "Verify unexpected links, attachments and login requests "
+                "before entering credentials."
+            ),
+        },
+        {
+            "title": "Multi-factor authentication",
+            "description": (
+                "Use MFA for sensitive accounts. Prefer phishing-resistant "
+                "methods such as passkeys or security keys where supported."
+            ),
+        },
+        {
+            "title": "Credential exposure",
+            "description": (
+                "A breached password should be considered compromised "
+                "and replaced with a new unique credential."
+            ),
+        },
+        {
+            "title": "Safe recovery",
+            "description": (
+                "Keep recovery methods current and protect recovery codes "
+                "with the same care as primary credentials."
+            ),
+        },
+    ]
+
+    return render_template(
+        "awareness.html",
+        lessons=lessons,
+    )
+
+
+# =========================================================
+# Password Reset Guidance
+# =========================================================
+
+@app.route("/reset-guidance")
+@login_required
+def reset_guidance():
+
+    steps = [
+        "Confirm that the password reset request was initiated by you.",
+        "Use the official website or application instead of a link from an unexpected message.",
+        "Create a new password that satisfies the SecureCheck password policy.",
+        "Do not reuse a breached or previously used password.",
+        "Sign out of other sessions when the service provides that option.",
+        "Review account recovery methods and enable MFA.",
+    ]
+
+    return render_template(
+        "reset_guidance.html",
+        steps=steps,
+    )
+
+
+# =========================================================
+# Passwordless Readiness Assessment
+# =========================================================
+
+@app.route(
+    "/passwordless-readiness",
+    methods=["GET", "POST"],
+)
+@login_required
+def passwordless_readiness():
+
+    result = None
+
+    questions = [
+        (
+            "mfa",
+            "Is multi-factor authentication enabled for your important accounts?",
+        ),
+        (
+            "phishing_resistant",
+            "Do you use a phishing-resistant authenticator such as a passkey or security key?",
+        ),
+        (
+            "recovery",
+            "Are your account recovery methods current and protected?",
+        ),
+        (
+            "device",
+            "Do your main devices support secure biometric or device-based authentication?",
+        ),
+        (
+            "password_manager",
+            "Do you use a password manager for accounts that still require passwords?",
+        ),
+    ]
+
+    if request.method == "POST":
+
+        score = 0
+
+        for key, _ in questions:
+
+            if request.form.get(key) == "yes":
+                score += 20
+
+        if score >= 80:
+            level = "Ready"
+
+        elif score >= 50:
+            level = "Partially Ready"
+
+        else:
+            level = "Needs Preparation"
+
+        actions = []
+
+        if request.form.get("mfa") != "yes":
+            actions.append(
+                "Enable MFA on important accounts."
+            )
+
+        if request.form.get("phishing_resistant") != "yes":
+            actions.append(
+                "Evaluate passkeys or security keys."
+            )
+
+        if request.form.get("recovery") != "yes":
+            actions.append(
+                "Review and protect account recovery methods."
+            )
+
+        if request.form.get("device") != "yes":
+            actions.append(
+                "Check whether your primary devices support secure authentication."
+            )
+
+        if request.form.get("password_manager") != "yes":
+            actions.append(
+                "Use a password manager for remaining password-based accounts."
+            )
+
+        if not actions:
+
+            actions.append(
+                "Maintain your current controls and review passwordless support periodically."
+            )
+
+        result = {
+            "score": score,
+            "level": level,
+            "actions": actions,
+        }
+
+        # Record the readiness assessment in the live audit log.
+        try:
+
+            conn = get_database_connection()
+
+            try:
+
+                log_event(
+                    conn,
+                    target_type="PASSWORDLESS_READINESS",
+                    target_id=session["user_id"],
+                    ip_address=request.remote_addr,
+                    user_agent=request.headers.get(
+                        "User-Agent"
+                    ),
+                    metadata={
+                        "action": "PASSWORDLESS_READINESS",
+                        "score": score,
+                        "level": level,
+                    },
+                )
+
+            finally:
+
+                conn.close()
+
+        except Exception:
+            pass
+
+    return render_template(
+        "passwordless_readiness.html",
+        questions=questions,
+        result=result,
     )
 
 
@@ -1230,7 +1455,7 @@ def admin():
         total_assessments=total_assessments,
         total_exposure_checks=total_exposure_checks,
         recent_results=recent_results,
-        audit_entries=audit_entries
+        audit_entries=audit_entries,
     )
 
 
@@ -1257,7 +1482,7 @@ def health():
 
         return jsonify({
             "status": "healthy",
-            "database": "connected"
+            "database": "connected",
         })
 
     except Exception as error:
@@ -1265,7 +1490,7 @@ def health():
         return jsonify({
             "status": "unhealthy",
             "database": "unavailable",
-            "error": str(error)
+            "error": str(error),
         }), 503
 
 
@@ -1275,7 +1500,7 @@ def health():
 
 @app.route(
     "/api/v1/password-policy",
-    methods=["POST"]
+    methods=["POST"],
 )
 @login_required
 def api_password_policy():
@@ -1286,7 +1511,7 @@ def api_password_policy():
 
     password = data.get(
         "password",
-        ""
+        "",
     )
 
     return jsonify(
@@ -1302,7 +1527,7 @@ def api_password_policy():
 
 @app.route(
     "/api/v1/credential-exposure",
-    methods=["POST"]
+    methods=["POST"],
 )
 @login_required
 def api_credential_exposure():
@@ -1313,13 +1538,13 @@ def api_credential_exposure():
 
     password = data.get(
         "password",
-        ""
+        "",
     )
 
     if not password:
 
         return jsonify({
-            "error": "Password is required."
+            "error": "Password is required.",
         }), 400
 
     result = check_pwned_password(
@@ -1347,7 +1572,7 @@ def forbidden(error):
     return (
         "<h1>403 Forbidden</h1>"
         "<p>You do not have permission to access this page.</p>",
-        403
+        403,
     )
 
 
@@ -1364,8 +1589,8 @@ if __name__ == "__main__":
         port=int(
             os.getenv(
                 "PORT",
-                "5000"
+                "5000",
             )
         ),
-        debug=True
+        debug=True,
     )
